@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pathfinder - Discover Nearby Attractions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2c3e50;
+            --accent-color: #e67e22;
+            --text-light: #ecf0f1;
+            --text-dark: #2c3e50;
+            --overlay-color: rgba(0, 0, 0, 0.6);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            overflow-x: hidden;
+        }
+
+        /* Header Styles */
+        header {
+            position: fixed;
+            width: 100%;
+            z-index: 1000;
+            background-color: rgba(255, 255, 255, 0.95);
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            transition: var(--transition);
+        }
+
+        header.scrolled {
+            background-color: var(--secondary-color);
+        }
+
+        .header-container {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem 5%;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 40px;
+            margin-right: 10px;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            font-weight: 700;
+            transition: var(--transition);
+        }
+
+        header.scrolled .logo h1 {
+            color: var(--text-light);
+        }
+
+        .nav-toggle {
+            display: none;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            color: var(--secondary-color);
+            cursor: pointer;
+        }
+
+        header.scrolled .nav-toggle {
+            color: var(--text-light);
+        }
+
+        nav ul {
+            display: flex;
+            list-style: none;
+        }
+
+        nav ul li {
+            margin-left: 2rem;
+        }
+
+        nav ul li a {
+            text-decoration: none;
+            color: var(--secondary-color);
+            font-weight: 500;
+            transition: var(--transition);
+            position: relative;
+        }
+
+        nav ul li a:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -5px;
+            left: 0;
+            background-color: var(--accent-color);
+            transition: var(--transition);
+        }
+
+        nav ul li a:hover:after {
+            width: 100%;
+        }
+
+        header.scrolled nav ul li a {
+            color: var(--text-light);
+        }
+
+        /* Hero Section */
+        .hero {
+            position: relative;
+            height: 100vh;
+            width: 100%;
+            background: url('/api/placeholder/1920/1080') center/cover no-repeat;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: var(--text-light);
+        }
+
+        .hero:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: var(--overlay-color);
+        }
+
+        .hero-content {
+            position: relative;
+            max-width: 800px;
+            padding: 2rem;
+            z-index: 2;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeIn 1s ease forwards 0.5s;
+        }
+
+        @keyframes fadeIn {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero h2 {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            font-weight: 700;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 0.8rem 2rem;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: 600;
+            transition: var(--transition);
+            margin: 0.5rem;
+        }
+
+        .btn:hover {
+            background-color: #d35400;
+            transform: translateY(-3px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .btn-outline {
+            background-color: transparent;
+            border: 2px solid var(--text-light);
+        }
+
+        .btn-outline:hover {
+            background-color: var(--text-light);
+            color: var(--secondary-color);
+        }
+
+        /* Enhanced About Section */
+.about {
+    padding: 5rem 5%;
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4efe9 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.about::before {
+    content: '';
+    position: absolute;
+    top: -50px;
+    left: 0;
+    width: 100%;
+    height: 100px;
+    background: white;
+    border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+}
+
+.section-title {
+    text-align: center;
+    font-size: 2.5rem;
+    color: var(--secondary-color);
+    margin-bottom: 3rem;
+    position: relative;
+}
+
+.section-title:after {
+    content: '';
+    position: absolute;
+    width: 100px;
+    height: 4px;
+    background: linear-gradient(90deg, var(--accent-color), var(--primary-color));
+    border-radius: 2px;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.about-content {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.about-text {
+    flex: 1;
+    min-width: 300px;
+    position: relative;
+    z-index: 1;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.about-text:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.15);
+}
+
+.about-text h3 {
+    font-size: 1.8rem;
+    margin-bottom: 1.5rem;
+    color: var(--primary-color);
+    border-bottom: 2px dashed var(--accent-color);
+    padding-bottom: 10px;
+    display: inline-block;
+}
+
+.about-text p {
+    font-size: 1.05rem;
+    line-height: 1.8;
+    color: #505a67;
+    margin-bottom: 1.5rem;
+    position: relative;
+    padding-left: 1rem;
+}
+
+.about-text p:before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
+    height: 0.8rem;
+    width: 0.3rem;
+    background-color: var(--accent-color);
+    border-radius: 2px;
+}
+
+.about-image {
+    flex: 1;
+    min-width: 300px;
+    overflow: hidden;
+    border-radius: 15px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+    position: relative;
+    transform: rotate(2deg);
+    transition: var(--transition);
+}
+
+.about-image:hover {
+    transform: rotate(0deg) scale(1.02);
+}
+
+.about-image img {
+    width: 100%;
+    height: auto;
+    transition: transform 0.6s ease;
+    display: block;
+}
+
+.about-image:hover img {
+    transform: scale(1.05);
+}
+
+.about-image:after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    border: 5px solid white;
+    border-radius: 15px;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+/* Floating elements for visual interest */
+.about-decoration {
+    position: absolute;
+    z-index: 0;
+    opacity: 0.08;
+    pointer-events: none;
+}
+
+.about-decoration.circle {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background-color: var(--primary-color);
+    top: 10%;
+    left: -5%;
+}
+
+.about-decoration.square {
+    width: 150px;
+    height: 150px;
+    background-color: var(--accent-color);
+    bottom: 15%;
+    right: 5%;
+    transform: rotate(45deg);
+}
+
+.highlight-box {
+    background-color: rgba(230, 126, 34, 0.1);
+    border-left: 4px solid var(--accent-color);
+    padding: 1rem;
+    margin: 1.5rem 0;
+    border-radius: 0 10px 10px 0;
+}
+
+.highlight-box strong {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+        /* Features Section */
+        .features {
+            padding: 5rem 5%;
+            background-color: #f9f9f9;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background-color: white;
+            border-radius: 10px;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .feature-card:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--secondary-color);
+        }
+
+        .feature-card p {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Future Enhancements Section */
+        .future {
+            padding: 5rem 5%;
+            background-color: var(--secondary-color);
+            color: var(--text-light);
+        }
+
+        .future .section-title {
+            color: var(--text-light);
+        }
+
+        .enhancements {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: center;
+        }
+
+        .enhancement {
+            flex: 1;
+            min-width: 250px;
+            max-width: 350px;
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 2rem;
+            border-radius: 10px;
+            text-align: center;
+            transition: var(--transition);
+        }
+
+        .enhancement:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .enhancement-icon {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--accent-color);
+        }
+
+        .enhancement h3 {
+            font-size: 1.3rem;
+            margin-bottom: 1rem;
+        }
+
+        .enhancement p {
+            font-size: 0.9rem;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        /* Footer */
+        footer {
+            background-color: #1a252f;
+            color: var(--text-light);
+            padding: 3rem 5% 2rem;
+        }
+
+        .footer-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 2rem;
+            justify-content: space-between;
+        }
+
+        .footer-section {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .footer-section h3 {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            position: relative;
+            padding-bottom: 0.5rem;
+        }
+
+        .footer-section h3:after {
+            content: '';
+            position: absolute;
+            width: 50px;
+            height: 2px;
+            background-color: var(--accent-color);
+            bottom: 0;
+            left: 0;
+        }
+
+        .footer-links {
+            list-style: none;
+        }
+
+        .footer-links li {
+            margin-bottom: 0.8rem;
+        }
+
+        .footer-links a {
+            color: rgba(255, 255, 255, 0.7);
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .footer-links a:hover {
+            color: var(--accent-color);
+            padding-left: 5px;
+        }
+
+        .social-icons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .social-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            color: var(--text-light);
+            font-size: 1.2rem;
+            transition: var(--transition);
+        }
+
+        .social-icon:hover {
+            background-color: var(--accent-color);
+            transform: translateY(-5px);
+        }
+
+        .footer-bottom {
+            margin-top: 3rem;
+            text-align: center;
+            padding-top: 1.5rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        /* Responsive Styles */
+        @media (max-width: 768px) {
+            .header-container {
+                padding: 1rem;
+            }
+
+            .nav-toggle {
+                display: block;
+            }
+
+            nav {
+                position: absolute;
+                top: 100%;
+                left: 0;
+                width: 100%;
+                background-color: white;
+                max-height: 0;
+                overflow: hidden;
+                transition: var(--transition);
+            }
+
+            header.scrolled nav {
+                background-color: var(--secondary-color);
+            }
+
+            nav.active {
+                max-height: 300px;
+                box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+            }
+
+            nav ul {
+                flex-direction: column;
+                padding: 1rem 0;
+            }
+
+            nav ul li {
+                margin: 0;
+                text-align: center;
+                padding: 0.8rem 0;
+            }
+
+            .hero h2 {
+                font-size: 2rem;
+            }
+
+            .hero p {
+                font-size: 1rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .about-content {
+                flex-direction: column;
+            }
+
+            .about-image {
+                order: -1;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .hero h2 {
+                font-size: 1.8rem;
+            }
+
+            .btn {
+                display: block;
+                width: 100%;
+                margin: 0.5rem 0;
+            }
+
+            .enhancement {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="header-container">
+            <div class="logo">
+                <img src="/api/placeholder/200/100" alt="Pathfinder Logo">
+                <h1>Pathfinder</h1>
+            </div>
+            <button class="nav-toggle" id="navToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav id="mainNav">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#support">Support</a></li>
+                </ul>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h2>Discover the Best Route to Famous Attractions</h2>
+            <p>Explore tourist spots efficiently with our advanced route optimization powered by Dijkstra's Algorithm. Find the closest attractions, plan your itinerary, and make the most of your travel experience.</p>
+            <div class="hero-buttons">
+                <a href="#" class="btn">Get Started</a>
+                <a href="#" class="btn btn-outline">Learn More</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+<section id="about" class="about">
+    <!-- Decorative elements -->
+    <div class="about-decoration circle"></div>
+    <div class="about-decoration square"></div>
+    
+    <h2 class="section-title">About Our Project</h2>
+    <div class="about-content">
+        <div class="about-text">
+            <h3>Optimizing Your Travel Experience</h3>
+            <p>Pathfinder helps travelers explore tourist spots efficiently by finding the best routes between attractions. Our application uses Dijkstra's Algorithm to calculate the optimal path from your current location to various points of interest in any district.</p>
+            
+            <div class="highlight-box">
+                <strong>Did you know?</strong> Our route optimization can save travelers up to 40% of their travel time between attractions!
+            </div>
+            
+            <p>Whether you're a first-time visitor or a seasoned traveler, our platform provides personalized recommendations based on your preferences, time constraints, and transportation options.</p>
+            
+            <p>With an engaging and interactive user interface, real-time updates, and detailed information about each attraction, Pathfinder ensures that you make the most of your travel experience.</p>
+        </div>
+        <div class="about-image">
+            <img src="/api/placeholder/600/400" alt="Map with route">
+        </div>
+    </div>
+</section>
+
+    <!-- Features Section -->
+    <section id="features" class="features">
+        <h2 class="section-title">Important Details</h2>
+        <div class="features-grid">
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-route"></i>
+                </div>
+                <h3>Route Optimization</h3>
+                <p>Using Dijkstra's Algorithm, our application calculates the shortest path between attractions, helping you minimize travel time and maximize your sightseeing experience.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-map-marked-alt"></i>
+                </div>
+                <h3>Interactive UI</h3>
+                <p>Enjoy a user-friendly interface with interactive maps, smooth animations, and intuitive controls that make planning your itinerary a breeze.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Real-time Updates</h3>
+                <p>Stay informed with real-time updates on attraction wait times, weather conditions, and other important factors that might affect your travel plans.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Future Enhancements Section -->
+    <section class="future">
+        <h2 class="section-title">Future Enhancements</h2>
+        <div class="enhancements">
+            <div class="enhancement">
+                <div class="enhancement-icon">
+                    <i class="fas fa-mobile-alt"></i>
+                </div>
+                <h3>Mobile App Version</h3>
+                <p>We're developing native mobile applications for iOS and Android platforms to provide an even more convenient way to access our services on the go.</p>
+            </div>
+            <div class="enhancement">
+                <div class="enhancement-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>User Reviews</h3>
+                <p>Soon, you'll be able to read and contribute reviews for attractions, helping other travelers make informed decisions about their itineraries.</p>
+            </div>
+            <div class="enhancement">
+                <div class="enhancement-icon">
+                    <i class="fas fa-map"></i>
+                </div>
+                <h3>Live Maps Integration</h3>
+                <p>We're working on integrating more advanced mapping capabilities with live traffic data to provide even more accurate route recommendations.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer>
+        <div class="footer-container">
+            <div class="footer-section">
+                <h3>About Pathfinder</h3>
+                <p>Pathfinder is dedicated to revolutionizing the way people explore new destinations by providing smart, efficient routing solutions for travelers.</p>
+                <div class="social-icons">
+                    <a href="#" class="social-icon"><i class="fab fa-facebook-f"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-twitter"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-instagram"></i></a>
+                    <a href="#" class="social-icon"><i class="fab fa-linkedin-in"></i></a>
+                </div>
+            </div>
+            <div class="footer-section">
+                <h3>Quick Links</h3>
+                <ul class="footer-links">
+                    <li><a href="#about">About Us</a></li>
+                    <li><a href="#features">Features</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                    <li><a href="#support">Support</a></li>
+                </ul>
+            </div>
+            <div class="footer-section">
+                <h3>Legal</h3>
+                <ul class="footer-links">
+                    <li><a href="#">Privacy Policy</a></li>
+                    <li><a href="#">Terms & Conditions</a></li>
+                    <li><a href="#">Cookie Policy</a></li>
+                    <li><a href="#">Disclaimer</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2025 Pathfinder. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script>
+        // JavaScript for responsive navigation
+        document.addEventListener('DOMContentLoaded', function() {
+            const navToggle = document.getElementById('navToggle');
+            const mainNav = document.getElementById('mainNav');
+            const header = document.querySelector('header');
+            
+            navToggle.addEventListener('click', function() {
+                mainNav.classList.toggle('active');
+            });
+            
+            // Change header background on scroll
+            window.addEventListener('scroll', function() {
+                if (window.scrollY > 100) {
+                    header.classList.add('scrolled');
+                } else {
+                    header.classList.remove('scrolled');
+                }
+            });
+            
+            // Smooth scrolling for navigation links
+            document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+                anchor.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    if (mainNav.classList.contains('active')) {
+                        mainNav.classList.remove('active');
+                    }
+                    
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        window.scrollTo({
+                            top: target.offsetTop - 80,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
