@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dijkstra's Algorithm - Belagavi Tourist Places</title>
+    <link href="css.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Dijkstra's Algorithm Visualization</h1>
+        <h2>Famous Places in Belagavi, Karnataka</h2>
+        
+        <div class="controls">
+            <select id="start-node">
+                <option value="0">Belagavi Fort</option>
+                <option value="1">Gokak Falls</option>
+                <option value="2">Belgaum Military Museum</option>
+                <option value="3">Kamal Basti</option>
+                <option value="4">Kittur Fort</option>
+                <option value="5">Belgaum Golf Course</option>
+                <option value="6">Rakaskop Dam</option>
+                <option value="7">Halasi Ruins</option>
+                <option value="8">Bhimgad Wildlife Sanctuary</option>
+                <option value="9">Yellur Fort</option>
+                <option value="10">Railway Station</option>
+                <option value="11">Central Bus Stand</option>
+            </select>
+            
+            <select id="end-node">
+                <option value="1">Gokak Falls</option>
+                <option value="2">Belgaum Military Museum</option>
+                <option value="3">Kamal Basti</option>
+                <option value="4">Kittur Fort</option>
+                <option value="5">Belgaum Golf Course</option>
+                <option value="6">Rakaskop Dam</option>
+                <option value="7">Halasi Ruins</option>
+                <option value="8">Bhimgad Wildlife Sanctuary</option>
+                <option value="9">Yellur Fort</option>
+                <option value="0">Belagavi Fort</option>
+                <option value="10">Railway Station</option>
+                <option value="11">Central Bus Stand</option>
+            </select>
+            
+            <button id="find-path">Find Shortest Path</button>
+            <button id="reset">Reset</button>
+            <button id="step">Step Through</button>
+            <button id="animate">Animate Algorithm</button>
+        </div>
+        
+        <div id="canvas-container">
+            <canvas id="graphCanvas"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #34495e;"></div>
+                    <span>Unvisited Place</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #3498db;"></div>
+                    <span>Current Place</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #2ecc71;"></div>
+                    <span>Visited Place</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #e74c3c;"></div>
+                    <span>Best Route</span>
+                </div>
+            </div>
+            
+            <div>
+                <h3>Algorithm Steps:</h3>
+                <div id="steps" class="steps-container"></div>
+            </div>
+            
+            <div>
+                <h3>Total Distance: <span id="total-distance">0</span> km</h3>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>© 2025 Belagavi Tourism - Interactive Dijkstra's Algorithm Visualization</p>
+        </div>
+    </div>
+
+    <script src="js.js"></script>
+</body>
+</html>
