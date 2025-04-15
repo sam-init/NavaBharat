@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NavaBharat</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1, h2 {
+            color: #2c3e50;
+            text-align: center;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        button {
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #2980b9;
+        }
+        select {
+            padding: 8px 12px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        #canvas-container {
+            position: relative;
+            width: 100%;
+            height: 750px;
+            border: 1px solid #ddd;
+            overflow: hidden;
+            margin-top: 20px;
+        }
+        canvas {
+            background-color: #f8f9fa;
+        }
+        .info-panel {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #eaf2f8;
+            border-radius: 5px;
+        }
+        .legend {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 20px;
+            margin: 15px 0;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+        }
+        .steps-container {
+            max-height: 150px;
+            overflow-y: auto;
+            padding: 10px;
+            border: 1px solid #ddd;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>NavaBharat</h1>
+        <h2>Exploring Belagavi with Realistic Road Network</h2>
+        
+        <div class="controls">
+            <select id="start-node">
+                <option value="0">Belagavi Fort</option>
+                <option value="1">Gokak Falls</option>
+                <option value="2">Belgaum Military Museum</option>
+                <option value="3">Kamal Basti</option>
+                <option value="4">Kittur Fort</option>
+                <option value="5">Belgaum Golf Course</option>
+                <option value="6">Rakaskop Dam</option>
+                <option value="7">Halasi Ruins</option>
+                <option value="8">Bhimgad Wildlife Sanctuary</option>
+                <option value="9">Yellur Fort</option>
+                <option value="10">Bus Stand</option>
+                <option value="11">Train Station</option>
+            </select>
+            
+            <select id="end-node">
+                <option value="1">Gokak Falls</option>
+                <option value="0">Belagavi Fort</option>
+                <option value="2">Belgaum Military Museum</option>
+                <option value="3">Kamal Basti</option>
+                <option value="4">Kittur Fort</option>
+                <option value="5">Belgaum Golf Course</option>
+                <option value="6">Rakaskop Dam</option>
+                <option value="7">Halasi Ruins</option>
+                <option value="8">Bhimgad Wildlife Sanctuary</option>
+                <option value="9">Yellur Fort</option>
+                <option value="10">Bus Stand</option>
+                <option value="11">Train Station</option>
+            </select>
+            
+            <button id="find-path">Find Shortest Path</button>
+            <button id="reset">Reset</button>
+            <button id="step">Step Through</button>
+            <button id="animate">Animate Algorithm</button>
+        </div>
+        
+        <div id="canvas-container">
+            <canvas id="graphCanvas"></canvas>
+        </div>
+        
+        <div class="info-panel">
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: black;"></div>
+                    <span>Unvisited Location</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #2ecc71;"></div>
+                    <span>Visited Location</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #e74c3c;"></div>
+                    <span>Path Location</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #95a5a6; width: 40px; height: 3px; border-radius: 0;"></div>
+                    <span>Road</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background-color: #e74c3c; width: 40px; height: 5px; border-radius: 0;"></div>
+                    <span>Selected Path</span>
+                </div>
+            </div>
+            
+            <div>
+                <h3>Algorithm Steps:</h3>
+                <div id="steps" class="steps-container"></div>
+            </div>
+            
+            <div>
+                <h3>Total Distance: <span id="total-distance">0</span> km</h3>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Define the graph of Belagavi's famous places
+        const places = [
+            "Belagavi Fort",          // 0
+            "Gokak Falls",            // 1
+            "Belgaum Military Museum", // 2
+            "Kamal Basti",            // 3
+            "Kittur Fort",            // 4
+            "Belgaum Golf Course",    // 5
+            "Rakaskop Dam",           // 6
+            "Halasi Ruins",           // 7
+            "Bhimgad Wildlife Sanctuary", // 8
+            "Yellur Fort",            // 9
+            "Bus Stand",              // 10
+            "Train Station"           // 11
+        ];
+        
+        // Adjacency matrix - distances in kilometers (approximate)
+        // 0 means no direct connection
+        const graph = [
+            // 0   1   2   3   4   5   6   7   8   9  10  11
+            [  0, 60,  5,  0, 35, 10, 25,  0,  0, 15,  3,  0], // 0: Belagavi Fort
+            [ 60,  0,  0,  0,  0,  0, 85,100,  0,  0,  0, 50], // 1: Gokak Falls
+            [  5,  0,  0, 12,  0,  8,  0,  0,  0,  0,  7,  9], // 2: Military Museum
+            [  0,  0, 12,  0, 30, 18,  0,  0,  0, 23,  0, 15], // 3: Kamal Basti
+            [ 35,  0,  0, 30,  0,  0,  0, 25, 30, 50,  0,  0], // 4: Kittur Fort
+            [ 10,  0,  8, 18,  0,  0, 15,  0,  0,  0, 12,  0], // 5: Golf Course
+            [ 25, 85,  0,  0,  0, 15,  0,  0,  0, 40,  0,  0], // 6: Rakaskop Dam
+            [  0,100,  0,  0, 25,  0,  0,  0, 15,  0,  0,  0], // 7: Halasi Ruins
+            [  0,  0,  0,  0, 30,  0,  0, 15,  0, 60,  0,  0], // 8: Bhimgad Sanctuary
+            [ 15,  0,  0, 23, 50,  0, 40,  0, 60,  0, 18,  0], // 9: Yellur Fort
+            [  3,  0,  7,  0,  0, 12,  0,  0,  0, 18,  0,  4], // 10: Bus Stand
+            [  0, 50,  9, 15,  0,  0,  0,  0,  0,  0,  4,  0]  // 11: Train Station
+        ];
+        
+        // Canvas setup
+        const canvas = document.getElementById('graphCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+        
+        // Node positions (x, y coordinates)
+        const nodePositions = [
+            { x: 250, y: 150 },  // 0: Belagavi Fort
+            { x: 650, y: 80 },   // 1: Gokak Falls
+            { x: 150, y: 280 },  // 2: Military Museum
+            { x: 350, y: 380 },  // 3: Kamal Basti
+            { x: 750, y: 260 },  // 4: Kittur Fort
+            { x: 320, y: 220 },  // 5: Golf Course
+            { x: 500, y: 120 },  // 6: Rakaskop Dam
+            { x: 900, y: 180 },  // 7: Halasi Ruins
+            { x: 850, y: 350 },  // 8: Bhimgad Sanctuary
+            { x: 550, y: 450 },  // 9: Yellur Fort
+            { x: 200, y: 180 },  // 10: Bus Stand
+            { x: 400, y: 250 }   // 11: Train Station
+        ];
+        
+        // Road path control points for curves (for each connected pair of nodes)
+        const roadControlPoints = {};
+        
+        function getControlPointsKey(i, j) {
+            return i < j ? `${i}_${j}` : `${j}_${i}`;
+        }
+        
+        function generateControlPoints() {
+            for (let i = 0; i < places.length; i++) {
+                for (let j = i + 1; j < places.length; j++) {
+                    if (graph[i][j] > 0) {
+                        const key = getControlPointsKey(i, j);
+                        
+                        // Determine if this road should be straight, curved, or zig-zag
+                        const routeType = Math.random();
+                        
+                        const startX = nodePositions[i].x;
+                        const startY = nodePositions[i].y;
+                        const endX = nodePositions[j].x;
+                        const endY = nodePositions[j].y;
+                        const midX = (startX + endX) / 2;
+                        const midY = (startY + endY) / 2;
+                        
+                        if (routeType < 0.33) {
+                            // Straight road
+                            roadControlPoints[key] = [];
+                        } else if (routeType < 0.7) {
+                            // Curved road
+                            const perpX = -(endY - startY);
+                            const perpY = endX - startX;
+                            const perpLength = Math.sqrt(perpX * perpX + perpY * perpY);
+                            const curveAmount = (Math.random() * 0.5 + 0.1) * (Math.random() > 0.5 ? 1 : -1);
+                            
+                            const ctrlX = midX + (perpX / perpLength) * 50 * curveAmount;
+                            const ctrlY = midY + (perpY / perpLength) * 50 * curveAmount;
+                            
+                            roadControlPoints[key] = [{ x: ctrlX, y: ctrlY }];
+                        } else {
+                            // Zig-zag road (two control points)
+                            const thirdX = startX + (endX - startX) / 3;
+                            const thirdY = startY + (endY - startY) / 3;
+                            const twoThirdX = startX + 2 * (endX - startX) / 3;
+                            const twoThirdY = startY + 2 * (endY - startY) / 3;
+                            
+                            const offset = Math.random() * 40 + 20;
+                            const ctrlPoint1 = {
+                                x: thirdX + (Math.random() > 0.5 ? offset : -offset),
+                                y: thirdY + (Math.random() > 0.5 ? offset : -offset)
+                            };
+                            
+                            const ctrlPoint2 = {
+                                x: twoThirdX + (Math.random() > 0.5 ? offset : -offset),
+                                y: twoThirdY + (Math.random() > 0.5 ? offset : -offset)
+                            };
+                            
+                            roadControlPoints[key] = [ctrlPoint1, ctrlPoint2];
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Node status colors
+        const colors = {
+            unvisited: 'black',
+            current: '#3498db',
+            visited: '#2ecc71',
+            path: '#e74c3c'
+        };
+        
+        // Node status
+        let nodeStatus = new Array(places.length).fill('unvisited');
+        
+        // Dijkstra's algorithm variables
+        let distances = [];
+        let previous = [];
+        let unvisited = [];
+        let path = [];
+        let steps = [];
+        let animationIndex = 0;
+        
+        // Draw a curved or zig-zag road between two nodes
+        function drawRoad(startNode, endNode, isPath) {
+            const startX = nodePositions[startNode].x;
+            const startY = nodePositions[startNode].y;
+            const endX = nodePositions[endNode].x;
+            const endY = nodePositions[endNode].y;
+            
+            ctx.beginPath();
+            ctx.moveTo(startX, startY);
+            
+            const key = getControlPointsKey(startNode, endNode);
+            const controlPoints = roadControlPoints[key];
+            
+            if (!controlPoints || controlPoints.length === 0) {
+                // Straight line
+                ctx.lineTo(endX, endY);
+            } else if (controlPoints.length === 1) {
+                // Curved line with one control point
+                ctx.quadraticCurveTo(controlPoints[0].x, controlPoints[0].y, endX, endY);
+            } else {
+                // Zig-zag or complex curve with multiple control points
+                ctx.bezierCurveTo(
+                    controlPoints[0].x, controlPoints[0].y,
+                    controlPoints[1].x, controlPoints[1].y,
+                    endX, endY
+                );
+            }
+            
+            ctx.stroke();
+            
+            // Draw distance at middle of road
+            const midPoint = getMidPointOnRoad(startNode, endNode);
+            ctx.fillStyle = '#666';
+            ctx.font = '14px Arial';
+            ctx.fillText(`${graph[startNode][endNode]}km`, midPoint.x, midPoint.y);
+        }
+        
+        // Calculate the mid-point on a road (straight, curved, or zig-zag)
+        function getMidPointOnRoad(startNode, endNode) {
+            const startX = nodePositions[startNode].x;
+            const startY = nodePositions[startNode].y;
+            const endX = nodePositions[endNode].x;
+            const endY = nodePositions[endNode].y;
+            
+            const key = getControlPointsKey(startNode, endNode);
+            const controlPoints = roadControlPoints[key];
+            
+            if (!controlPoints || controlPoints.length === 0) {
+                // Straight line
+                return { x: (startX + endX) / 2, y: (startY + endY) / 2 };
+            } else if (controlPoints.length === 1) {
+                // Curved line with one control point
+                const t = 0.5; // Parameter for mid-point
+                const x = (1-t)*(1-t)*startX + 2*(1-t)*t*controlPoints[0].x + t*t*endX;
+                const y = (1-t)*(1-t)*startY + 2*(1-t)*t*controlPoints[0].y + t*t*endY;
+                return { x, y };
+            } else {
+                // Zig-zag or complex curve with multiple control points
+                const t = 0.5; // Parameter for mid-point
+                const x = (1-t)*(1-t)*(1-t)*startX + 3*(1-t)*(1-t)*t*controlPoints[0].x + 
+                          3*(1-t)*t*t*controlPoints[1].x + t*t*t*endX;
+                const y = (1-t)*(1-t)*(1-t)*startY + 3*(1-t)*(1-t)*t*controlPoints[0].y + 
+                          3*(1-t)*t*t*controlPoints[1].y + t*t*t*endY;
+                return { x, y };
+            }
+        }
+        
+        // Draw the graph
+        function drawGraph() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw roads
+            ctx.strokeStyle = '#95a5a6';
+            ctx.lineWidth = 3;
+            
+            for (let i = 0; i < places.length; i++) {
+                for (let j = i + 1; j < places.length; j++) {
+                    if (graph[i][j] > 0) {
+                        drawRoad(i, j, false);
+                    }
+                }
+            }
+            
+            // Draw path roads if any
+            if (path.length > 1) {
+                ctx.strokeStyle = '#e74c3c';
+                ctx.lineWidth = 5;
+                
+                for (let i = 0; i < path.length - 1; i++) {
+                    drawRoad(path[i], path[i + 1], true);
+                }
+            }
+            
+            // Draw nodes
+            for (let i = 0; i < places.length; i++) {
+                ctx.beginPath();
+                ctx.arc(nodePositions[i].x, nodePositions[i].y, 25, 0, Math.PI * 2);
+                ctx.fillStyle = colors[nodeStatus[i]];
+                ctx.fill();
+                
+                // Display node index
+                ctx.fillStyle = 'white';
+                ctx.font = 'bold 14px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(i, nodePositions[i].x, nodePositions[i].y);
+                
+                // Place name
+                ctx.fillStyle = 'black';
+                ctx.font = '14px Arial';
+                
+                // Adjust text placement for certain nodes to avoid overlap
+                let yOffset = 40;
+                if (i === 10 || i === 11) { // Bus Stand and Train Station
+                    ctx.font = 'bold 14px Arial';
+                }
+                
+                ctx.fillText(places[i], nodePositions[i].x, nodePositions[i].y + yOffset);
+                
+                // Distance (if calculated)
+                if (distances[i] !== Infinity && distances.length > 0) {
+                    ctx.fillStyle = '#333';
+                    ctx.fillText(distances[i] + 'km', nodePositions[i].x, nodePositions[i].y - 30);
+                }
+            }
+        }
+        
+        // Run Dijkstra's algorithm
+        function dijkstra(startNode, endNode) {
+            steps = [];
+            distances = new Array(places.length).fill(Infinity);
+            previous = new Array(places.length).fill(null);
+            unvisited = [...Array(places.length).keys()];
+            nodeStatus = new Array(places.length).fill('unvisited');
+            
+            distances[startNode] = 0;
+            steps.push(`Starting at ${places[startNode]}`);
+            
+            while (unvisited.length > 0) {
+                // Find the unvisited node with the smallest distance
+                const currentNode = unvisited.reduce((minNode, node) => 
+                    distances[node] < distances[minNode] ? node : minNode, unvisited[0]);
+                
+                // If we've reached the end node or all remaining nodes are unreachable
+                if (currentNode === endNode || distances[currentNode] === Infinity) {
+                    break;
+                }
+                
+                // Mark current node as visited (remove from unvisited)
+                unvisited.splice(unvisited.indexOf(currentNode), 1);
+                nodeStatus[currentNode] = 'visited';
+                
+                steps.push(`Visiting location ${currentNode} (${places[currentNode]}) with distance ${distances[currentNode]}km`);
+                
+                // Check all neighbors of current node
+                for (let neighbor = 0; neighbor < places.length; neighbor++) {
+                    // Skip if no connection or already visited
+                    if (graph[currentNode][neighbor] === 0 || !unvisited.includes(neighbor)) {
+                        continue;
+                    }
+                    
+                    // Calculate new distance
+                    const distance = distances[currentNode] + graph[currentNode][neighbor];
+                    
+                    // If new distance is shorter, update it
+                    if (distance < distances[neighbor]) {
+                        distances[neighbor] = distance;
+                        previous[neighbor] = currentNode;
+                        steps.push(`Updated distance to ${places[neighbor]}: ${distance}km (through ${places[currentNode]})`);
+                    }
+                }
+            }
+            
+            // Reconstruct path
+            path = [];
+            let current = endNode;
+            
+            if (previous[current] !== null || current === startNode) {
+                while (current !== null) {
+                    path.unshift(current);
+                    current = previous[current];
+                }
+                
+                // Mark path nodes
+                for (let i = 0; i < path.length; i++) {
+                    nodeStatus[path[i]] = 'path';
+                }
+                
+                steps.push(`Found shortest path: ${path.map(p => places[p]).join(' → ')} (${distances[endNode]}km)`);
+            } else {
+                steps.push(`No path found to ${places[endNode]}`);
+            }
+            
+            // Display steps
+            document.getElementById('steps').innerHTML = steps.map(step => `<p>${step}</p>`).join('');
+            document.getElementById('total-distance').textContent = distances[endNode] !== Infinity ? distances[endNode] : 'No path';
+            
+            drawGraph();
+        }
+        
+        // Animation functions
+        function stepThroughAlgorithm() {
+            if (animationIndex >= steps.length) {
+                return;
+            }
+            
+            document.getElementById('steps').innerHTML = steps.slice(0, animationIndex + 1).map(step => `<p>${step}</p>`).join('');
+            document.getElementById('steps').scrollTop = document.getElementById('steps').scrollHeight;
+            
+            animationIndex++;
+        }
+        
+        function animateAlgorithm() {
+            animationIndex = 0;
+            const intervalId = setInterval(() => {
+                stepThroughAlgorithm();
+                if (animationIndex >= steps.length) {
+                    clearInterval(intervalId);
+                }
+            }, 1000);
+        }
+        
+        // Reset the visualization
+        function resetVisualization() {
+            nodeStatus = new Array(places.length).fill('unvisited');
+            distances = [];
+            previous = [];
+            path = [];
+            steps = [];
+            animationIndex = 0;
+            
+            document.getElementById('steps').innerHTML = '';
+            document.getElementById('total-distance').textContent = '0';
+            
+            drawGraph();
+        }
+        
+        // Event listeners
+        document.getElementById('find-path').addEventListener('click', () => {
+            const startNode = parseInt(document.getElementById('start-node').value);
+            const endNode = parseInt(document.getElementById('end-node').value);
+            dijkstra(startNode, endNode);
+        });
+        
+        document.getElementById('reset').addEventListener('click', resetVisualization);
+        document.getElementById('step').addEventListener('click', stepThroughAlgorithm);
+        document.getElementById('animate').addEventListener('click', animateAlgorithm);
+        
+        // Initialize the visualization
+        window.addEventListener('load', () => {
+            generateControlPoints();
+            resetVisualization();
+        });
+        
+        // Adjust canvas size on window resize
+        window.addEventListener('resize', () => {
+            canvas.width = canvas.parentElement.clientWidth;
+            canvas.height = canvas.parentElement.clientHeight;
+            drawGraph();
+        });
+    </script>
+</body>
+</html>
